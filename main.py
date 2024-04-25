@@ -74,12 +74,12 @@ def create_article(post: PostRequest, request: Request):
 
 # put method
 @app.put("/article/{id}")
-def update_article(id: int, post: PostRequest):
+def update_article(id: int, post: PostRequest, request: Request):
     try:
         validated_item = PostRequest(**post.dict())
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
-    post = Post.update(validated_item.title, validated_item.content, validated_item.category, validated_item.status)
+    post = Post.update(id,validated_item.title, validated_item.content, validated_item.category, validated_item.status)
     return "success"
 
 # delete method
