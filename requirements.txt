@@ -2,3 +2,4 @@ alembic==1.13.1
 python-dotenv
 fastapi
 uvicorn
+pymysql
