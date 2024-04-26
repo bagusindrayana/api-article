@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Response, status, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import uvicorn
 from pydantic import BaseModel,model_validator
@@ -7,6 +8,16 @@ import json
 from app.models.Post import Post
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class PostRequest(BaseModel):
@@ -48,7 +59,9 @@ def read_root():
 @app.get("/article")
 def get_article(request: Request):
     page = request.query_params.get("page") or 1
-    return Post.paginate(page)
+    search = request.query_params.get("search") or None
+    status = request.query_params.get("status") or None
+    return Post.filter(page,search,status)
 
 @app.get("/article/{limit}/{offset}")
 def get_article_offset(limit: int, offset: int):
@@ -70,7 +83,9 @@ def create_article(post: PostRequest, request: Request):
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     post = Post.create(validated_item.title, validated_item.content, validated_item.category, validated_item.status)
-    return "success"
+    return {
+        "message":"success"
+    }
 
 # put method
 @app.put("/article/{id}")
@@ -80,13 +95,24 @@ def update_article(id: int, post: PostRequest, request: Request):
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     post = Post.update(id,validated_item.title, validated_item.content, validated_item.category, validated_item.status)
-    return "success"
+    return {
+        "message":"success"
+    }
 
-# delete method
+
 @app.delete("/article/{id}")
 def delete_article(id: int):
+    post = Post.trash(id)
+    return {
+        "message":"success"
+    }
+
+@app.delete("/article/{id}/permanent")
+def delete_article(id: int):
     post = Post.delete(id)
-    return "success"
+    return {
+        "message":"success"
+    }
 
 default_port = "8111"
 try:

@@ -25,8 +25,40 @@ class Post(Base):
         return session.query(Post).limit(limit).offset(offset).all()
 
     def paginate(page):
+        # if page is string
+        if isinstance(page, str):
+            page = int(page)
         offset = (page - 1) * 10
         return session.query(Post).limit(10).offset(offset).all()
+
+    def filter(page,search,status=None):
+        # if page is string
+        if isinstance(page, str):
+            page = int(page)
+        offset = (page - 1) * 10
+        next = False
+        prev = False
+        datas = session.query(Post)
+        if search:
+            datas = datas.filter(Post.title.like(f"%{search}%"))
+        
+        if status:
+            datas = datas.filter(Post.status == status)
+        count = datas.count()
+
+        if count > offset + 10:
+            next = True
+        
+        if offset > 0:
+            prev = True
+
+        datas = datas.limit(10).offset(offset)
+        return {
+            "data":datas.all(),
+            "count":count,
+            "prev":prev,
+            "next":next
+        }
 
     def get_by_id(id):
         return session.query(Post).filter(Post.id == id).first()
@@ -47,6 +79,12 @@ class Post(Base):
         post.category = category
         post.status = status
         post.updated_date = now
+        session.commit()
+        return post
+    
+    def trash(id):
+        post = session.query(Post).filter(Post.id == id).first()
+        post.status = "thrash"
         session.commit()
         return post
     
