@@ -22,7 +22,7 @@ class Post(Base):
         return []
     
     def get_data(offset, limit):
-        return session.query(Post).limit(limit).offset(offset).all()
+        return session.query(Post).order_by(Post.created_date.desc()).limit(limit).offset(offset).all()
 
     def paginate(page):
         # if page is string
@@ -45,6 +45,9 @@ class Post(Base):
         if status:
             datas = datas.filter(Post.status == status)
         count = datas.count()
+
+        # order by created_date
+        datas = datas.order_by(Post.created_date.desc())
 
         if count > offset + 10:
             next = True
