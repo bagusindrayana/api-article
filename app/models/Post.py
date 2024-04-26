@@ -77,24 +77,34 @@ class Post(Base):
     def update(id, title, content, category, status):
         now = datetime.datetime.now()
         post = session.query(Post).filter(Post.id == id).first()
-        post.title = title
-        post.content = content
-        post.category = category
-        post.status = status
-        post.updated_date = now
-        session.commit()
+        if post:
+            post.title = title
+            post.content = content
+            post.category = category
+            post.status = status
+            post.updated_date = now
+            session.commit()
+        else:
+            raise Exception("Post not found")
+        
         return post
     
     def trash(id):
         post = session.query(Post).filter(Post.id == id).first()
-        post.status = "thrash"
-        session.commit()
+        if post:
+             post.status = "thrash"
+             session.commit()
+        else:
+            raise Exception("Post not found")
         return post
     
     def delete(id):
         post = session.query(Post).filter(Post.id == id).first()
-        session.delete(post)
-        session.commit()
+        if post:
+            session.delete(post)
+            session.commit()
+        else:
+            raise Exception("Post not found")
         return post
 
 Base.metadata.create_all(db)
